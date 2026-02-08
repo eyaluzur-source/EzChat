@@ -316,6 +316,72 @@
             cursor: pointer;
             z-index: 1000;
         }
+        @media screen and (max-width: 600px) {
+    /* סידור דף הבית */
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* שורת החברים התחתונה */
+    #sidebar {
+        order: 2; /* מעביר לסוף */
+        width: 100%;
+        height: 80px;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: #eee;
+        padding: 10px;
+        border-top: 2px solid #000;
+    }
+
+    /* כפתור ה-G לקבוצות */
+    .group-btn {
+        min-width: 60px;
+        height: 60px;
+        background: #000;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        position: sticky;
+        right: 0;
+    }
+
+    /* אזור הצ'אט והנוטס - המנגנון של הגלילה */
+    .app-content {
+        display: flex;
+        width: 200%; /* פי 2 מרוחב המסך */
+        transition: transform 0.3s ease;
+        flex-grow: 1;
+    }
+
+    .chat-screen, .notes-screen {
+        width: 50%; /* כל אחד תופס מסך שלם */
+        height: 100%;
+    }
+
+    /* כפתורי ה-Post ו-View בריבועים */
+    .notes-actions {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .action-square {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 5px;
+        border: 2px solid #000;
+    }
+}
     </style>
 </head>
 <body id="app-body">
@@ -537,4 +603,5 @@
         function goHome() { document.getElementById("app-body").classList.remove("in-chat"); document.getElementById("back-btn").style.display = "none"; currentTarget = null; }
     </script>
 </body>
+
 </html>
