@@ -141,41 +141,87 @@
 
         /* --- MOBILE OPTIMIZATION --- */
         @media screen and (max-width: 600px) {
-            body { flex-direction: column; }
+    body {
+        flex-direction: column;
+        overflow: hidden;
+    }
 
-            /* סיידבר הופך לשורה נגללת בתחתית */
-            #sidebar {
-                order: 3; width: 100%; height: 90px;
-                border-left: none; border-top: var(--border-thick);
-                flex-direction: row; align-items: center;
-            }
-            .sidebar-title { display: none; } /* מחביאים את הכותרת בטלפון */
-            #contacts-panel { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; padding: 5px 15px; }
-            .contact-card { min-width: 80px; margin-bottom: 0; font-size: 0.75rem; white-space: nowrap; }
+    /* סידור מחדש של ה-Layout */
+    #main-view {
+        order: 1;
+        padding: 15px;
+        height: calc(100vh - 100px); /* משאיר מקום לסיידבר למטה */
+        display: block; /* מבטל את ה-flex שמרכז הכל */
+    }
 
-            #main-view { order: 1; padding: 15px; height: calc(100vh - 90px); }
-            
-            /* כפתורי ה-Notes עוברים לצד ימין כריבועים */
-            .split-buttons {
-                position: absolute; right: 5px; top: 185px; /* מיקום ליד הנוטס */
-                flex-direction: column; width: 60px; z-index: 5;
-            }
-            .split-buttons button { height: 50px; padding: 5px; font-size: 10px; margin: 2px 0; }
+    /* שורת החברים התחתונה */
+    #sidebar {
+        order: 2;
+        width: 100% !important;
+        height: 100px;
+        background: #fff;
+        border-left: none;
+        border-top: var(--border-thick);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0 10px;
+        z-index: 1000;
+    }
 
-            /* המנגנון של דפדוף בין צ'אט לנוטס */
-            #book {
-                width: 200vw; /* רוחב של 2 מסכים */
-                max-width: none;
-                margin-top: 0;
-                gap: 0;
-                position: absolute; left: 0; top: 60px; bottom: 0;
-            }
-            .page { width: 100vw; height: 100%; border: none; border-radius: 0; }
-            
-            /* כפתור G נכנס לתוך שורת החברים */
-            #group-fab { position: relative; bottom: auto; right: auto; min-width: 50px; height: 50px; margin-right: 10px; flex-shrink: 0; }
-            #sidebar { padding-left: 10px; }
-        }
+    .sidebar-title { display: none; } /* מחביא את הכותרת בטלפון */
+
+    #contacts-panel {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto; /* מאפשר גלילה ימינה-שמאלה של חברים */
+        flex: 1;
+        padding: 10px 0;
+    }
+
+    .contact-card {
+        min-width: 80px;
+        margin-bottom: 0;
+        padding: 8px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    /* כפתור ה-G בתוך שורת החברים */
+    #group-fab {
+        position: static; /* מבטל את ה-fixed */
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    /* הכפתורים הופכים לריבועים בצד התיבה */
+    .notes-area-wrapper {
+        position: relative;
+        margin-right: 60px; /* מפנה מקום לכפתורים מימין */
+    }
+
+    .split-buttons {
+        position: absolute;
+        right: -55px;
+        top: 0;
+        flex-direction: column;
+        width: 50px;
+        margin-top: 0;
+    }
+
+    .split-buttons button {
+        width: 50px;
+        height: 50px;
+        margin: 0 0 10px 0;
+        padding: 0;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+}
     </style>
 </head>
 <body id="app-body">
@@ -320,3 +366,4 @@
     </script>
 </body>
 </html>
+
