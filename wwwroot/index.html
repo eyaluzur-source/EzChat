@@ -128,41 +128,54 @@
         /* --- MOBILE OPTIMIZATION --- */
         /* --- MOBILE OPTIMIZATION (SWIPE EXPERIENCE) --- */
         /* תיקון רמזי ה-Swipe: יופיעו רק בטלפון */
+/* הגדרה כללית ל-Brand - תמיד גדול */
+        .brand-name { 
+            color: var(--accent-blue); 
+            font-size: 3.5rem !important; 
+            font-weight: 700; 
+            text-decoration: underline; 
+        }
+
         .mobile-hint { display: none; }
 
         @media screen and (max-width: 600px) {
             .mobile-hint { display: inline !important; }
             body { flex-direction: column; overflow: hidden; }
-            #main-view { padding: 10px; order: 1; height: calc(100vh - 120px); overflow: hidden; }
             
-            /* שורת חברים מורמת וגלויה */
+            /* ניצול מקסימלי של המסך בנייד */
+            #main-view { padding: 10px; order: 1; height: calc(100vh - 120px); width: 100vw; overflow: hidden; }
+            
+            /* הגדלת הכותרת גם בנייד */
+            .brand-name { font-size: 2.8rem !important; }
+
+            /* שורת חברים - ללא הריבוע הכחול */
             #sidebar { 
                 order: 2; width: 100%; height: 120px; 
                 position: fixed; bottom: 0; left: 0;
                 flex-direction: row; border-top: var(--border-thick); 
                 background: white; z-index: 1000; padding: 10px;
             }
-            #contacts-panel { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; }
+            .sidebar-title { display: none !important; } /* הסרת הריבוע הכחול */
+            #contacts-panel { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; width: 100%; }
             .contact-card { min-width: 110px; height: 80px; margin-bottom: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
             #group-fab { position: static; min-width: 60px; height: 80px; margin-right: 5px; flex-shrink: 0; order: -1; }
 
-            /* סדר בטלפון: צ'אט ואז נוטס */
-            #book { display: none; width: 100vw; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; flex-direction: row !important; }
-            body.in-chat #book { display: flex; }
-            .page { min-width: 100vw; scroll-snap-align: start; border: none; }
-        }
-
-        /* החזרת המבנה המקורי למחשב */
-        @media screen and (min-width: 601px) {
+            /* תיקון ה-80%: ניצול 100% רוחב */
             #book { 
-                display: none; 
-                flex-direction: row-reverse !important; /* מחזיר נוטס לשמאל וצ'אט לימין */
-                gap: 20px; 
+                display: none; width: 100vw; height: 100%; 
+                margin: 0; padding: 0; 
+                overflow-x: auto; scroll-snap-type: x mandatory; 
             }
             body.in-chat #book { display: flex; }
-            .page { flex: 1; }
-            .id-card h2 { font-size: 1.5rem !important; } /* החזרת גודל ה-ID */
-            .search-btn, .send-btn { padding: 10px 25px !important; } /* כפתורים גדולים יותר */
+            .page { min-width: 100vw; width: 100vw; height: 100%; scroll-snap-align: start; border: none; margin: 0; }
+        }
+
+        @media screen and (min-width: 601px) {
+            #book { display: none; flex-direction: row-reverse !important; gap: 20px; width: 100%; max-width: 1000px; }
+            body.in-chat #book { display: flex; }
+            .page { flex: 1; height: 600px; }
+            .id-card h2 { font-size: 1.8rem !important; }
+            .send-btn { padding: 12px 30px !important; }
         }
 
             .header-group { padding: 10px; margin-bottom: 15px; }
@@ -208,14 +221,17 @@
         <div id="book">
             <div class="page" id="chat-page">
                 <div class="page-header">
-                    <span onclick="goHome()" style="cursor:pointer;">➔</span>
-                    <span id="chat-title">PRIVATE CHAT</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span onclick="goHome()" style="cursor:pointer; font-size:1.2rem;">➔</span>
+                        <span id="chat-title">CHAT</span>
+                    </div>
+                    <button onclick="goHome()" style="background:white; color:var(--accent-blue); border:1px solid; font-size:10px; padding:2px 5px; cursor:pointer; font-weight:bold;">BACK TO PROFILE</button>
                     <small class="mobile-hint" style="font-size: 10px; opacity: 0.6;">Notes Swipe ➔</small>
                 </div>
                 <div id="messages-area" class="content-area"></div>
                 <div style="border-top:var(--border-thick); display:flex; background: white;">
-                    <input type="text" id="msg-input" style="flex:1; padding:12px; border:none; outline:none;" placeholder="Message..." onkeypress="if(event.key==='Enter') handleSend()">
-                    <button class="send-btn" onclick="handleSend()" style="background:var(--accent-blue); color:white; border:none; padding:10px 15px; font-weight:bold; cursor:pointer;">SEND</button>
+                    <input type="text" id="msg-input" style="flex:1; padding:15px; border:none; outline:none;" placeholder="Message..." onkeypress="if(event.key==='Enter') handleSend()">
+                    <button class="send-btn" onclick="handleSend()" style="background:var(--accent-blue); color:white; border:none; font-weight:bold; cursor:pointer;">SEND</button>
                 </div>
             </div>
 
@@ -381,4 +397,5 @@
     </script>
 </body>
 </html>
+
 
