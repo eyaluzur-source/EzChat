@@ -162,7 +162,7 @@
         @media screen and (min-width: 601px) {
             #book { 
                 display: none; 
-                flex-direction: row-reverse !important; /* מחזיר נוטס לשמאל וצ'אט לימין */
+                flex-direction: row !important; /* מחזיר נוטס לשמאל וצ'אט לימין */
                 gap: 20px; 
             }
             body.in-chat #book { display: flex; }
@@ -278,10 +278,20 @@
         });
 
         connection.on("ReceiveMessage", (sender, msg) => {
-            if (!chatsData[sender]) createContactUI(sender);
-            chatsData[sender].messages.push({ sender, text: msg });
-            if (currentTarget === sender) renderMessage(sender, msg);
-        });
+    // אם השולח לא ברשימה שלי - צור לו כרטיס עכשיו
+    if (!chatsData[sender]) {
+        chatsData[sender] = { messages: [], notes: [] };
+        createContactUI(sender); 
+    }
+    
+    chatsData[sender].messages.push({ sender, text: msg });
+    if (currentTarget === sender) renderMessage(sender, msg);
+    
+    // בונוס: הוספת התראה קטנה אם אנחנו לא בחלונית שלו
+    if (currentTarget !== sender) {
+        document.getElementById("card-" + sender).style.borderColor = "orange";
+    }
+});
 
         connection.on("ReceiveGroupMessage", (members, sender, msg) => {
             const groupId = "GRP_" + members.sort().join("");
@@ -401,3 +411,4 @@
     </script>
 </body>
 </html>
+
