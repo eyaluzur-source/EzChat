@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,9 +12,16 @@ app.Run();
 
 public class ChatHub : Hub
 {
+    // מילון שזוכר מי מחובר כרגע (נמחק בניתוק)
     private static ConcurrentDictionary<string, string> CodeToConnectionId = new();
     private static ConcurrentDictionary<string, string> ConnectionIdToCode = new();
+    
+    // מילון שזוכר הערות (נמחק בניתוק כרגע)
     private static ConcurrentDictionary<string, List<string>> UserNotes = new();
+
+    // *** החדש: מילון שזוכר שריון מספרים (לא נמחק בניתוק!) ***
+    // מפתח: ID, ערך: יום הולדת/סיסמה
+    private static ConcurrentDictionary<string, string> ReservedUsers = new();
 
     public override async Task OnConnectedAsync()
     {
@@ -32,11 +39,55 @@ public class ChatHub : Hub
         if (ConnectionIdToCode.TryRemove(Context.ConnectionId, out string code))
         {
             CodeToConnectionId.TryRemove(code, out _);
-            UserNotes.TryRemove(code, out _);
+            // אם המשתמש לא שריין את המספר, נמחק את ההערות שלו
+            if (!ReservedUsers.ContainsKey(code))
+            {
+                UserNotes.TryRemove(code, out _);
+            }
         }
         await base.OnDisconnectedAsync(exception);
     }
 
+    // פונקציית שריון (SAVE)
+    public async Task ProcessSave(string birthday)
+    {
+        if (ConnectionIdToCode.TryGetValue(Context.ConnectionId, out string? myCode))
+        {
+            if (ReservedUsers.ContainsKey(myCode))
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", "ID already secured");
+                return;
+            }
+
+            ReservedUsers.TryAdd(myCode, birthday);
+            await Clients.Caller.SendAsync("SuccessMessage", "ID Secured with birthday!");
+        }
+    }
+
+    // פונקציית כניסה למספר קיים (LOGIN)
+    public async Task ProcessLogin(string targetCode, string birthday)
+    {
+        if (ReservedUsers.TryGetValue(targetCode, out string? savedBirthday) && savedBirthday == birthday)
+        {
+            // החלפת ה-ID הנוכחי של המשתמש ל-ID הישן שלו
+            if (ConnectionIdToCode.TryRemove(Context.ConnectionId, out string oldTempCode))
+            {
+                CodeToConnectionId.TryRemove(oldTempCode, out _);
+            }
+
+            CodeToConnectionId[targetCode] = Context.ConnectionId;
+            ConnectionIdToCode[Context.ConnectionId] = targetCode;
+
+            await Clients.Caller.SendAsync("ReceiveMyCode", targetCode);
+            await Clients.Caller.SendAsync("SuccessMessage", "Logged in to your ID!");
+        }
+        else
+        {
+            await Clients.Caller.SendAsync("ErrorMessage", "Invalid ID or Birthday");
+        }
+    }
+
+    // שאר הפונקציות שלך נשארות אותו דבר...
     public async Task CheckUserExists(string targetCode)
     {
         if (CodeToConnectionId.ContainsKey(targetCode))
@@ -57,18 +108,6 @@ public class ChatHub : Hub
         {
             string myCode = ConnectionIdToCode[Context.ConnectionId];
             await Clients.Client(targetConnId).SendAsync("ReceiveMessage", myCode, message);
-        }
-    }
-
-    public async Task SendMessageToGroup(List<string> members, string message)
-    {
-        string senderCode = ConnectionIdToCode[Context.ConnectionId];
-        foreach (var member in members)
-        {
-            if (CodeToConnectionId.TryGetValue(member, out string? connId))
-            {
-                await Clients.Client(connId).SendAsync("ReceiveGroupMessage", members, senderCode, message);
-            }
         }
     }
 
@@ -98,7 +137,7 @@ public class ChatHub : Hub
             char[] digits = new char[length];
             for (int i = 0; i < length; i++) digits[i] = (char)('0' + rnd.Next(0, 6));
             code = new string(digits);
-        } while (CodeToConnectionId.ContainsKey(code));
+        } while (CodeToConnectionId.ContainsKey(code) || ReservedUsers.ContainsKey(code));
         return code;
     }
 }
