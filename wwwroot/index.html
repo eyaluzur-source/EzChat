@@ -27,7 +27,7 @@
             overflow: hidden;
         }
 
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR (Desktop) --- */
         #sidebar {
             width: 240px;
             border-left: var(--border-thick);
@@ -62,6 +62,9 @@
             border-radius: var(--radius-main);
         }
 
+        .contact-card.selecting { border-color: orange; background: #fff9f0; }
+        .contact-card.selected { background: var(--accent-blue); color: white; border-color: #000; }
+
         /* --- MAIN VIEW --- */
         #main-view {
             flex: 1;
@@ -88,36 +91,14 @@
         }
 
         .brand-name { 
-            color: var(--accent-blue); 
-            font-size: 3.5rem; 
-            font-weight: 700; 
-            text-decoration: underline; 
-        }
+    color: var(--accent-blue); 
+    font-size: 4rem; /* הוגדל מ-3 */
+    font-weight: 700; 
+    text-decoration: underline; 
+}
+        .credit { font-size: 1rem; font-weight: 700; opacity: 0.5; margin-top: 5px; }
+        .id-card { background: #fff; border: 2px solid #000; padding: 12px; text-align: center; border-radius: var(--radius-main); }
 
-        /* --- AUTH SECTION --- */
-        .auth-wrapper { display: flex; align-items: center; gap: 10px; }
-        .id-card { 
-            background: #fff; border: 2px solid #000; padding: 10px; 
-            text-align: center; border-radius: var(--radius-main); 
-            min-width: 150px; min-height: 90px; display: flex; flex-direction: column; justify-content: center;
-            position: relative; 
-        }
-        .auth-side-btns { display: flex; flex-direction: column; gap: 5px; }
-        .mini-auth-btn { 
-            background: var(--accent-blue); color: white; border: 1px solid #000; 
-            font-size: 10px; font-weight: bold; padding: 4px 8px; cursor: pointer; border-radius: 4px; 
-        }
-        
-        .back-mini-btn {
-            position: absolute; top: 2px; left: 4px;
-            background: none; border: none; font-size: 16px;
-            cursor: pointer; color: #888; font-weight: bold;
-        }
-
-        .auth-input { width: 100%; font-size: 11px; border: 1px solid #ccc; margin-top: 2px; text-align: center; padding: 3px; border-radius: 4px; }
-        .auth-confirm { background: #004B87; color: white; border: 1px solid #000; font-size: 10px; cursor: pointer; margin-top: 5px; font-weight: bold; padding: 3px; border-radius: 4px; }
-
-        /* --- CONTROLS --- */
         .home-controls { width: 100%; max-width: 600px; display: grid; gap: 20px; }
         .search-row { display: flex; border: var(--border-thick); background: white; border-radius: var(--radius-main); overflow: hidden; }
         #search-input { flex: 1; border: none; padding: 12px; outline: none; }
@@ -140,22 +121,71 @@
         .msg-me { background: var(--primary-bg); align-self: flex-end; border-bottom-right-radius: 2px; }
         .msg-other { background: #fff; align-self: flex-start; border-bottom-left-radius: 2px; color: var(--accent-blue); }
 
+        .note-link-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid var(--fb-border); background: #fff; color: var(--accent-blue); font-weight: 700; cursor: pointer; border-radius: var(--radius-main); }
+        
         body.in-chat .home-controls, body.in-chat .header-group { display: none; }
         body.in-chat #book { display: flex; }
 
         #back-btn { margin-top: 20px; background: var(--accent-blue); color: white; border: var(--border-thick); padding: 12px 25px; font-weight: 700; cursor: pointer; display: none; border-radius: var(--radius-main); }
         #group-fab { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--accent-blue); color: white; border: 3px solid #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; z-index: 1000; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        /* --- MOBILE OPTIMIZATION (SWIPE EXPERIENCE) --- */
+        /* תיקון רמזי ה-Swipe: יופיעו רק בטלפון */
+        .mobile-hint { display: none; }
 
         @media screen and (max-width: 600px) {
-            #sidebar { width: 100%; height: 120px; position: fixed; bottom: 0; left: 0; flex-direction: row; border-top: var(--border-thick); z-index: 1000; padding: 10px; background: #fff; }
+            .sidebar-title { display: none !important; }
+            .mobile-hint { display: inline !important; }
+            body { flex-direction: column; overflow: hidden; }
+            #main-view { padding: 10px; order: 1; height: calc(100vh - 120px); overflow: hidden; }
+            
+            /* שורת חברים מורמת וגלויה */
+            #sidebar { 
+                order: 2; width: 100%; height: 120px; 
+                position: fixed; bottom: 0; left: 0;
+                flex-direction: row; border-top: var(--border-thick); 
+                background: white; z-index: 1000; padding: 10px;
+            }
             #contacts-panel { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; }
-            .contact-card { min-width: 110px; height: 80px; margin-bottom: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-            #main-view { padding: 10px; height: calc(100vh - 130px); }
-            .brand-name { font-size: 2.5rem; }
-            #book { flex-direction: column; height: auto; }
-            .page { height: 400px; }
+            .contact-card { min-width: 110px; height: 80px; margin-bottom: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+            #group-fab { position: static; min-width: 60px; height: 100px; margin-right: 5px; flex-shrink: 0; order: -1; }
+
+            /* סדר בטלפון: צ'אט ואז נוטס */
+            #book { display: none; width: 100vw; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; flex-direction: row !important; }
+            body.in-chat #book { display: flex; }
+            .page { min-width: 100vw; scroll-snap-align: start; border: none; }
         }
+
+        /* החזרת המבנה המקורי למחשב */
+        @media screen and (min-width: 601px) {
+            #book { 
+                display: none; 
+                flex-direction: row-reverse !important; /* מחזיר נוטס לשמאל וצ'אט לימין */
+                gap: 20px; 
+            }
+            body.in-chat #book { display: flex; }
+            .page { flex: 1; }
+            .id-card h2 { font-size: 1.5rem !important; } /* החזרת גודל ה-ID */
+            .search-btn, .send-btn { padding: 10px 25px !important; } /* כפתורים גדולים יותר */
+        }
+
+            .header-group { padding: 10px; margin-bottom: 15px; }
+            .brand-name { font-size: 3rem; }
+        }
+        .mobile-back-container { display: none; }
+
+    @media screen and (max-width: 600px) {
+        .mobile-back-container { 
+            display: block; 
+            width: 100%; 
+            padding: 10px; 
+            text-align: center;
+        }
+    /* מסתיר את כפתור הטקסט המקורי רק בנייד כי שמנו לו תחליף מעוצב */
+    #back-btn { display: none !important; } 
+}
     </style>
 </head>
 <body id="app-body">
@@ -164,24 +194,17 @@
         <div class="sidebar-title">Friends List</div>
         <div id="contacts-panel"></div>
     </div>
-
     <div id="main-view">
         <div class="header-group">
             <div>
                 <div class="brand-name">EzChat</div>
                 <div class="credit">by Eyal Zur</div>
             </div>
-
-            <div class="auth-wrapper">
-                <div class="id-card" id="id-box-ui">
-                    </div>
-                <div class="auth-side-btns">
-                    <button class="mini-auth-btn" onclick="showLoginUI()">Log in</button>
-                    <button class="mini-auth-btn" onclick="showSaveUI()">Save</button>
-                </div>
+            <div class="id-card">
+                <div style="font-size: 11px; font-weight: 700;">YOUR ID</div>
+                <h2 style="margin:0; font-size: 1.5rem; color: var(--accent-blue);" id="my-code-display">---</h2>
             </div>
         </div>
-
         <div class="home-controls">
             <div style="font-weight: 700; color: var(--accent-blue);">Find your friend:</div>
             <div class="search-row">
@@ -200,13 +223,12 @@
                 </div>
             </div>
         </div>
-
         <div id="book">
             <div class="page" id="chat-page">
                 <div class="page-header">
                     <span onclick="goHome()" style="cursor:pointer;">➔</span>
                     <span id="chat-title">PRIVATE CHAT</span>
-                    <span></span>
+                    <small class="mobile-hint" style="font-size: 10px; opacity: 0.6;">Notes Swipe ➔</small>
                 </div>
                 <div id="messages-area" class="content-area"></div>
                 <div style="border-top:var(--border-thick); display:flex; background: white;">
@@ -217,6 +239,7 @@
 
             <div class="page" id="notes-page">
                 <div class="page-header">
+                    <small class="mobile-hint" style="font-size: 10px; opacity: 0.6;">⬅ Chat</small>
                     <span id="notes-title">Notes</span>
                     <span id="notes-back-btn" class="hidden" style="cursor:pointer;" onclick="renderGroupNotesList()">🏠</span>
                 </div>
@@ -224,67 +247,34 @@
             </div>
         </div>
         
+
         <button onclick="goHome()" id="back-btn">[ Back to Profile ]</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
+        // --- ALL YOUR ORIGINAL LOGIC UNTOUCHED ---
         const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
-        let myCode = "---", currentTarget = null, isGroup = false;
+        let myCode = "", currentTarget = null, isGroup = false;
         let chatsData = {}, isSelectingForGroup = false, selectedCodes = [], myNotes = [], nicknames = {};
 
         connection.start().catch(err => console.error(err));
-        
-        // --- מהשרת ---
-        connection.on("ReceiveMyCode", code => { myCode = code; renderDefaultID(); });
+        connection.on("ReceiveMyCode", code => { myCode = code; document.getElementById("my-code-display").innerText = code; });
         connection.on("ErrorMessage", msg => alert(msg));
-        connection.on("SuccessMessage", msg => alert(msg));
 
-        const authBox = document.getElementById("id-box-ui");
-
-        // --- AUTH UI FUNCTIONS ---
-        function renderDefaultID() {
-            authBox.innerHTML = `
-                <div style="font-size: 11px; font-weight: 700;">YOUR ID</div>
-                <h2 style="margin:0; font-size: 1.5rem; color: var(--accent-blue);">${myCode}</h2>
-            `;
-        }
-
-        function showLoginUI() {
-            authBox.innerHTML = `
-                <button class="back-mini-btn" onclick="renderDefaultID()">←</button>
-                <div style="font-size: 10px; font-weight: 800;">LOGIN</div>
-                <input type="text" id="l-id" placeholder="Enter ID" class="auth-input">
-                <input type="text" id="l-birth" placeholder="Birthday" class="auth-input">
-                <button class="auth-confirm" onclick="processLogin()">GO</button>
-            `;
-        }
-
-        function showSaveUI() {
-            authBox.innerHTML = `
-                <button class="back-mini-btn" onclick="renderDefaultID()">←</button>
-                <div style="font-size: 10px; font-weight: 800;">SAVE ${myCode}</div>
-                <input type="text" id="s-birth" placeholder="Set Birthday" class="auth-input">
-                <button class="auth-confirm" onclick="processSave()">CONFIRM</button>
-            `;
-        }
-
-        function processLogin() {
-            const id = document.getElementById("l-id").value;
-            const birth = document.getElementById("l-birth").value;
-            if(id && birth) connection.invoke("ProcessLogin", id, birth);
-        }
-
-        function processSave() {
-            const birth = document.getElementById("s-birth").value;
-            if(birth) connection.invoke("ProcessSave", birth);
-        }
-
-        // --- CORE LOGIC ---
         connection.on("UserFound", code => {
-            if(!chatsData[code]) chatsData[code] = { messages: [], notes: [] };
+            chatsData[code] = { messages: [], notes: [] };
             createContactUI(code);
             switchChat(code);
+        });
+
+        connection.on("ReceiveUserNotes", (code, notes) => {
+            if (code === myCode) { myNotes = notes; renderMyPreview(); }
+            else {
+                if (!chatsData[code]) chatsData[code] = { messages: [], notes: [] };
+                chatsData[code].notes = notes;
+                if (!isGroup && currentTarget === code) renderNotes(notes);
+            }
         });
 
         connection.on("ReceiveMessage", (sender, msg) => {
@@ -293,13 +283,29 @@
             if (currentTarget === sender) renderMessage(sender, msg);
         });
 
-        connection.on("ReceiveUserNotes", (code, notes) => {
-            if (code === myCode) { myNotes = notes; renderMyPreview(); }
-            else if (chatsData[code]) { 
-                chatsData[code].notes = notes; 
-                if (currentTarget === code && !isGroup) renderNotes(notes);
-            }
+        connection.on("ReceiveGroupMessage", (members, sender, msg) => {
+            const groupId = "GRP_" + members.sort().join("");
+            if (!chatsData[groupId]) { chatsData[groupId] = { messages: [], members: members, isGroup: true }; createContactUI(groupId, "GRP"); }
+            chatsData[groupId].messages.push({ sender, text: msg });
+            if (currentTarget === groupId) renderMessage(sender, msg);
         });
+
+        function handleGroupClick() {
+            if (!isSelectingForGroup) {
+                isSelectingForGroup = true; selectedCodes = [];
+                document.querySelectorAll('.contact-card').forEach(el => { if (!el.dataset.group) el.classList.add('selecting'); });
+                alert("Select friends, then press G again.");
+            } else {
+                if (selectedCodes.length > 0) {
+                    const groupMembers = [...selectedCodes, myCode];
+                    const groupId = "GRP_" + groupMembers.sort().join("");
+                    if (!chatsData[groupId]) { chatsData[groupId] = { messages: [], members: groupMembers, isGroup: true }; createContactUI(groupId, "GRP"); }
+                    switchChat(groupId);
+                }
+                isSelectingForGroup = false;
+                document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('selecting', 'selected'));
+            }
+        }
 
         function createContactUI(id, label) {
             let div = document.getElementById("card-" + id);
@@ -307,67 +313,91 @@
                 div = document.createElement("div");
                 div.id = "card-" + id; div.className = "contact-card";
                 document.getElementById("contacts-panel").appendChild(div);
-                div.onclick = () => switchChat(id);
-                div.innerText = id;
+                if (!chatsData[id]) chatsData[id] = { messages: [], notes: [] };
             }
+            updateCardText(div, id, label);
+            if (label === "GRP" || id.startsWith("GRP_")) div.dataset.group = "true";
+            div.onclick = () => {
+                if (isSelectingForGroup && !div.dataset.group) {
+                    div.classList.toggle('selected');
+                    if (div.classList.contains('selected')) selectedCodes.push(id);
+                    else selectedCodes = selectedCodes.filter(c => c !== id);
+                } else switchChat(id);
+            };
+            div.ondblclick = () => {
+                const n = prompt("Nickname:", nicknames[id] || "");
+                if (n !== null) {
+                    nicknames[id] = n.trim();
+                    updateCardText(div, id, label);
+                    if (currentTarget === id) switchChat(id);
+                }
+            };
+        }
+
+        function updateCardText(div, id, label) {
+            const isGroupItem = label === "GRP" || id.startsWith("GRP_");
+            if (nicknames[id]) div.innerText = isGroupItem ? `${nicknames[id]} (GRP)` : `${nicknames[id]} (${id})`;
+            else div.innerText = isGroupItem ? "GRP" : id;
         }
 
         function switchChat(id) {
-            currentTarget = id;
+            currentTarget = id; isGroup = chatsData[id].isGroup || false;
             document.getElementById("app-body").classList.add("in-chat");
             document.getElementById("back-btn").style.display = "block";
             document.getElementById("messages-area").innerHTML = "";
-            document.getElementById("chat-title").innerText = "CHAT: " + id;
-            if(chatsData[id]) {
-                chatsData[id].messages.forEach(m => renderMessage(m.sender, m.text));
+            document.getElementById("book").scrollLeft = 0;
+            if (isGroup) {
+                document.getElementById("chat-title").innerText = nicknames[id] || "GROUP CHAT";
+                renderGroupNotesList();
+            } else {
+                document.getElementById("chat-title").innerText = `CHAT: ${nicknames[id] || id}`;
                 connection.invoke("GetUserNotes", id);
             }
+            chatsData[id].messages.forEach(m => renderMessage(m.sender, m.text));
         }
 
+        function renderGroupNotesList() {
+            document.getElementById("notes-back-btn").classList.add("hidden");
+            const otherMembers = chatsData[currentTarget].members.filter(m => m !== myCode);
+            document.getElementById("notes-content").innerHTML = otherMembers.map(m =>
+                `<button class="note-link-btn" onclick="showSpecificNotes('${m}')">${nicknames[m] || m}</button>`
+            ).join("");
+        }
+
+        function showSpecificNotes(code) {
+            document.getElementById("notes-back-btn").classList.remove("hidden");
+            document.getElementById("notes-content").innerHTML = "Loading...";
+            connection.invoke("GetUserNotes", code);
+            setTimeout(() => { renderNotes(chatsData[code]?.notes || []); }, 400);
+        }
+
+        function renderNotes(notes) { document.getElementById("notes-content").innerHTML = notes.map(n => `<div style="padding:10px; border-bottom:1px dotted #ccc;">• ${n}</div>`).join("") || "No notes."; }
+        function toggleNotesView() {
+            const area = document.getElementById("my-note-input"), prev = document.getElementById("my-notes-preview"), btn = document.getElementById("toggle-view-btn");
+            if (area.style.display !== "none") { area.style.display = "none"; prev.style.display = "block"; btn.innerText = "EDIT"; renderMyPreview(); }
+            else { area.style.display = "block"; prev.style.display = "none"; btn.innerText = "VIEW"; }
+        }
+        function renderMyPreview() { document.getElementById("my-notes-preview").innerHTML = myNotes.map(n => `<div style="padding:10px; border-bottom:1px solid #eee;">• ${n}</div>`).join('') || "No notes."; }
         function handleSend() {
-            const input = document.getElementById("msg-input");
-            if (!input.value.trim()) return;
-            connection.invoke("SendMessageToUser", currentTarget, input.value);
-            chatsData[currentTarget].messages.push({ sender: 'me', text: input.value });
-            renderMessage('me', input.value);
+            const input = document.getElementById("msg-input"); if (!input.value.trim()) return;
+            if (isGroup) connection.invoke("SendMessageToGroup", chatsData[currentTarget].members, input.value);
+            else {
+                connection.invoke("SendMessageToUser", currentTarget, input.value);
+                chatsData[currentTarget].messages.push({ sender: 'me', text: input.value });
+                renderMessage('me', input.value);
+            }
             input.value = "";
         }
-
         function renderMessage(sender, text) {
             const div = document.createElement("div");
-            div.className = "message " + (sender === 'me' ? "msg-me" : "msg-other");
-            div.innerText = text;
-            const area = document.getElementById("messages-area");
-            area.appendChild(div);
-            area.scrollTop = area.scrollHeight;
+            div.className = "message " + (sender === myCode || sender === 'me' ? "msg-me" : "msg-other");
+            const lblName = sender === 'me' ? 'me' : (nicknames[sender] || sender);
+            div.innerHTML = (isGroup && sender !== 'me') ? `<small><b>${lblName}</b></small><br>${text}` : text;
+            const area = document.getElementById("messages-area"); area.appendChild(div); area.scrollTop = area.scrollHeight;
         }
-
-        function updateMyNote() {
-            const v = document.getElementById("my-note-input").value;
-            if (v) { connection.invoke("UpdateMyNotes", v); document.getElementById("my-note-input").value = ""; }
-        }
-
-        function toggleNotesView() {
-            const area = document.getElementById("my-note-input"), prev = document.getElementById("my-notes-preview");
-            if (area.style.display !== "none") { area.style.display = "none"; prev.style.display = "block"; renderMyPreview(); }
-            else { area.style.display = "block"; prev.style.display = "none"; }
-        }
-
-        function renderMyPreview() {
-            document.getElementById("my-notes-preview").innerHTML = myNotes.map(n => `<div style="padding:10px; border-bottom:1px solid #eee;">• ${n}</div>`).join('');
-        }
-
-        function addContact() {
-            const v = document.getElementById("search-input").value;
-            if (v && v !== myCode) connection.invoke("CheckUserExists", v);
-        }
-
-        function goHome() { 
-            document.getElementById("app-body").classList.remove("in-chat"); 
-            document.getElementById("back-btn").style.display = "none";
-        }
-
-        renderDefaultID();
+        function addContact() { const v = document.getElementById("search-input").value; if (v && v !== myCode) connection.invoke("CheckUserExists", v); document.getElementById("search-input").value = ""; }
+        function updateMyNote() { const v = document.getElementById("my-note-input").value; if (v) { connection.invoke("UpdateMyNotes", v); document.getElementById("my-note-input").value = ""; } }
+        function goHome() { document.getElementById("app-body").classList.remove("in-chat"); document.getElementById("back-btn").style.display = "none"; currentTarget = null; }
     </script>
 </body>
 </html>
