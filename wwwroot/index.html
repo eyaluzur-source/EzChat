@@ -60,6 +60,7 @@
             background: #fff;
             font-size: 0.85rem;
             border-radius: var(--radius-main);
+            transition: all 0.2s;
         }
 
         .contact-card.selecting { border-color: orange; background: #fff9f0; }
@@ -237,63 +238,82 @@
         function processLogin() { const id = document.getElementById("l-id").value, b = document.getElementById("l-birth").value; if(id && b) connection.invoke("ProcessLogin", id, b); }
         function processSave() { const b = document.getElementById("s-birth").value; if(b) connection.invoke("ProcessSave", b); }
 
-        connection.on("UserFound", code => { if(!chatsData[code]) chatsData[code] = { messages: [], notes: [] }; createContactUI(code); switchChat(code); });
+        connection.on("UserFound", code => { 
+            if(!chatsData[code]) chatsData[code] = { messages: [], notes: [] }; 
+            createContactUI(code); 
+            switchChat(code); 
+        });
 
         connection.on("ReceiveMessage", (sender, msg) => {
             if (!chatsData[sender]) { chatsData[sender] = { messages: [], notes: [] }; createContactUI(sender); }
             chatsData[sender].messages.push({ sender, text: msg });
             if (currentTarget === sender) renderMessage(sender, msg);
-            else document.getElementById("card-" + sender).style.borderColor = "orange";
+            else {
+                const card = document.getElementById("card-" + sender);
+                if(card) card.style.borderColor = "orange";
+            }
         });
 
-connection.on("ReceiveGroupMessage", (members, sender, msg) => {
-    // 1. יצירת ה-ID הייחודי
-    const gid = "GRP_" + members.sort().join("");
-    
-    // 2. עדכון הנתונים בזיכרון - חייב לקרות אצל כולם!
-    if (!chatsData[gid]) {
-        chatsData[gid] = {
-            messages: [],
-            members: members,
-            isGroup: true
-        };
-    }
-    
-    // 3. הזרקה ויזואלית לרשימת החברים (זה מה שהיה חסר)
-    // אם הכרטיס לא קיים אצל המקבל, הפונקציה הזו תיצור אותו עכשיו
-    createContactUI(gid, "GRP");
+        connection.on("ReceiveGroupMessage", (members, sender, msg) => {
+            const gid = "GRP_" + members.sort().join("");
+            
+            // יצירה אוטומטית אצל המקבל
+            if (!chatsData[gid]) {
+                chatsData[gid] = {
+                    messages: [],
+                    members: members,
+                    isGroup: true
+                };
+            }
+            
+            // וודא שהכרטיס קיים ברשימה
+            createContactUI(gid, "GRP");
 
-    // 4. הוספת ההודעה
-    chatsData[gid].messages.push({ sender, text: msg });
+            chatsData[gid].messages.push({ sender, text: msg });
 
-    // 5. התראה למשתמש
-    if (currentTarget === gid) {
-        renderMessage(sender, msg);
-    } else {
-        const card = document.getElementById("card-" + gid);
-        if (card) {
-            card.style.borderColor = "orange";
-            card.style.fontWeight = "bold"; // בולטות נוספת
-        }
-    }
-});
+            if (currentTarget === gid) {
+                renderMessage(sender, msg);
+            } else {
+                const card = document.getElementById("card-" + gid);
+                if (card) {
+                    card.style.borderColor = "orange";
+                    card.style.fontWeight = "bold";
+                }
+            }
+        });
 
         connection.on("ReceiveUserNotes", (code, notes) => {
             if (code === myCode) { myNotes = notes; renderMyPreview(); }
-            else if (chatsData[code]) { chatsData[code].notes = notes; if (currentTarget === code && !isGroup) renderNotes(notes); }
+            else if (chatsData[code]) { 
+                chatsData[code].notes = notes; 
+                if (currentTarget === code && !isGroup) renderNotes(notes); 
+            }
         });
 
         function handleGroupClick() {
             if (!isSelectingForGroup) {
                 isSelectingForGroup = true; selectedCodes = [];
-                document.querySelectorAll('.contact-card').forEach(el => { if (!el.id.startsWith("card-GRP")) el.classList.add('selecting'); });
-                alert("Select friends, then press G again.");
+                document.querySelectorAll('.contact-card').forEach(el => { 
+                    if (!el.id.startsWith("card-GRP")) el.classList.add('selecting'); 
+                });
+                alert("Select friends, then press G again to create group.");
             } else {
                 if (selectedCodes.length > 0) {
                     const members = [...selectedCodes, myCode];
                     const gid = "GRP_" + members.sort().join("");
-                    if (!chatsData[gid]) { chatsData[gid] = { messages: [], members: members, isGroup: true }; createContactUI(gid, "GRP"); }
+                    
+                    if (!chatsData[gid]) { 
+                        chatsData[gid] = { messages: [], members: members, isGroup: true }; 
+                    }
+                    
+                    createContactUI(gid, "GRP");
                     switchChat(gid);
+                    
+                    // שליחת הודעת פתיחה אוטומטית כדי שכולם יראו את הקבוצה מיד
+                    const welcomeMsg = "Group created!";
+                    connection.invoke("SendMessageToGroup", members, welcomeMsg);
+                    chatsData[gid].messages.push({ sender: myCode, text: welcomeMsg });
+                    renderMessage(myCode, welcomeMsg);
                 }
                 isSelectingForGroup = false;
                 document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('selecting', 'selected'));
@@ -303,18 +323,30 @@ connection.on("ReceiveGroupMessage", (members, sender, msg) => {
         function createContactUI(id, label) {
             let div = document.getElementById("card-" + id);
             if (div) return;
-            div = document.createElement("div"); div.id = "card-" + id; div.className = "contact-card";
+
+            div = document.createElement("div"); 
+            div.id = "card-" + id; 
+            div.className = "contact-card";
             div.onclick = () => {
                 if (isSelectingForGroup && !id.startsWith("GRP")) {
                     div.classList.toggle('selected');
-                    if (div.classList.contains('selected')) selectedCodes.push(id);
-                    else selectedCodes = selectedCodes.filter(c => c !== id);
-                } else { div.style.borderColor = "var(--fb-border)"; switchChat(id); }
+                    if (div.classList.contains('selected')) {
+                        if(!selectedCodes.includes(id)) selectedCodes.push(id);
+                    } else {
+                        selectedCodes = selectedCodes.filter(c => c !== id);
+                    }
+                } else { 
+                    div.style.borderColor = "var(--fb-border)"; 
+                    div.style.fontWeight = "normal";
+                    switchChat(id); 
+                }
             };
+            
             div.ondblclick = () => {
                 const n = prompt("Nickname:", nicknames[id] || "");
                 if (n !== null) { nicknames[id] = n.trim(); updateCardText(div, id, label); }
             };
+            
             updateCardText(div, id, label);
             document.getElementById("contacts-panel").appendChild(div);
         }
@@ -325,64 +357,130 @@ connection.on("ReceiveGroupMessage", (members, sender, msg) => {
         }
 
         function switchChat(id) {
-            currentTarget = id; isGroup = id.startsWith("GRP");
+            currentTarget = id; 
+            isGroup = id.startsWith("GRP");
             document.getElementById("app-body").classList.add("in-chat");
             document.getElementById("back-btn").style.display = "block";
             document.getElementById("messages-area").innerHTML = "";
-            document.getElementById("chat-title").innerText = (nicknames[id] || (isGroup ? "GROUP CHAT" : "CHAT: " + id));
+            
+            const title = nicknames[id] || (isGroup ? "GROUP CHAT" : "CHAT: " + id);
+            document.getElementById("chat-title").innerText = title;
+            
             if (isGroup) renderGroupNotesList();
             else connection.invoke("GetUserNotes", id);
-            if(chatsData[id]) chatsData[id].messages.forEach(m => renderMessage(m.sender, m.text));
+            
+            if(chatsData[id] && chatsData[id].messages) {
+                chatsData[id].messages.forEach(m => renderMessage(m.sender, m.text));
+            }
         }
 
         function renderGroupNotesList() {
             document.getElementById("notes-back-btn").style.display = "none";
+            document.getElementById("notes-title").innerText = "Group Members";
+            if(!chatsData[currentTarget]) return;
             const members = chatsData[currentTarget].members.filter(m => m !== myCode);
-            document.getElementById("notes-content").innerHTML = members.map(m => `<button class="note-link-btn" onclick="showSpecificNotes('${m}')">${nicknames[m] || m}</button>`).join("");
+            document.getElementById("notes-content").innerHTML = members.map(m => 
+                `<button class="note-link-btn" onclick="showSpecificNotes('${m}')">${nicknames[m] || m}</button>`
+            ).join("");
         }
 
         function showSpecificNotes(code) {
             document.getElementById("notes-back-btn").style.display = "inline";
+            document.getElementById("notes-title").innerText = "Notes: " + (nicknames[code] || code);
             document.getElementById("notes-content").innerHTML = "Loading...";
             connection.invoke("GetUserNotes", code);
-            setTimeout(() => { renderNotes(chatsData[code]?.notes || []); }, 500);
+            // המתנה קלה לעדכון הנתונים מהשרת
+            setTimeout(() => { 
+                renderNotes(chatsData[code]?.notes || []); 
+            }, 500);
         }
 
         function renderMessage(sender, text) {
             const div = document.createElement("div");
-            div.className = "message " + (sender === 'me' || sender === myCode ? "msg-me" : "msg-other");
-            div.innerHTML = (isGroup && sender !== 'me' && sender !== myCode) ? `<small><b>${nicknames[sender] || sender}:</b></small><br>${text}` : text;
-            const area = document.getElementById("messages-area"); area.appendChild(div); area.scrollTop = area.scrollHeight;
+            const isMe = (sender === 'me' || sender === myCode);
+            div.className = "message " + (isMe ? "msg-me" : "msg-other");
+            
+            if (isGroup && !isMe) {
+                div.innerHTML = `<small style="display:block; margin-bottom:4px; opacity:0.7;"><b>${nicknames[sender] || sender}:</b></small>${text}`;
+            } else {
+                div.innerText = text;
+            }
+            
+            const area = document.getElementById("messages-area"); 
+            area.appendChild(div); 
+            area.scrollTop = area.scrollHeight;
         }
 
         function handleSend() {
-    const input = document.getElementById("msg-input"); 
-    const val = input.value.trim();
-    if (!val) return;
+            const input = document.getElementById("msg-input"); 
+            const val = input.value.trim();
+            if (!val || !currentTarget) return;
 
-    if (isGroup) {
-        // שליחה לשרת
-        connection.invoke("SendMessageToGroup", chatsData[currentTarget].members, val);
-        // הוספה לעצמי (השרת לא שולח חזרה לשולח ב-GroupMessage בדרך כלל)
-        chatsData[currentTarget].messages.push({ sender: myCode, text: val });
-        renderMessage(myCode, val);
-    } else {
-        connection.invoke("SendMessageToUser", currentTarget, val);
-        chatsData[currentTarget].messages.push({ sender: 'me', text: val });
-        renderMessage('me', val);
-    }
-    input.value = "";
-}
+            if (isGroup) {
+                const members = chatsData[currentTarget].members;
+                connection.invoke("SendMessageToGroup", members, val);
+                // הוספה לעצמי
+                chatsData[currentTarget].messages.push({ sender: myCode, text: val });
+                renderMessage(myCode, val);
+            } else {
+                connection.invoke("SendMessageToUser", currentTarget, val);
+                if(!chatsData[currentTarget]) chatsData[currentTarget] = {messages:[], notes:[]};
+                chatsData[currentTarget].messages.push({ sender: 'me', text: val });
+                renderMessage('me', val);
+            }
+            input.value = "";
+        }
 
-        function renderNotes(notes) { document.getElementById("notes-content").innerHTML = notes.map(n => `<div style="padding:10px; border-bottom:1px dotted #ccc;">• ${n}</div>`).join("") || "No notes."; }
-        function updateMyNote() { const v = document.getElementById("my-note-input").value; if (v) { connection.invoke("UpdateMyNotes", v); document.getElementById("my-note-input").value = ""; } }
-        function toggleNotesView() { const area = document.getElementById("my-note-input"), prev = document.getElementById("my-notes-preview"); if (area.style.display !== "none") { area.style.display = "none"; prev.style.display = "block"; renderMyPreview(); } else { area.style.display = "block"; prev.style.display = "none"; } }
-        function renderMyPreview() { document.getElementById("my-notes-preview").innerHTML = myNotes.map(n => `<div style="padding:10px; border-bottom:1px solid #eee;">• ${n}</div>`).join(''); }
-        function addContact() { const v = document.getElementById("search-input").value; if (v && v !== myCode) connection.invoke("CheckUserExists", v); document.getElementById("search-input").value = ""; }
-        function goHome() { document.getElementById("app-body").classList.remove("in-chat"); document.getElementById("back-btn").style.display = "none"; currentTarget = null; }
+        function renderNotes(notes) { 
+            document.getElementById("notes-content").innerHTML = notes.map(n => 
+                `<div style="padding:10px; border-bottom:1px dotted #ccc;">• ${n}</div>`
+            ).join("") || "No notes."; 
+        }
+
+        function updateMyNote() { 
+            const v = document.getElementById("my-note-input").value; 
+            if (v) { 
+                connection.invoke("UpdateMyNotes", v); 
+                document.getElementById("my-note-input").value = ""; 
+                alert("Note posted!");
+            } 
+        }
+
+        function toggleNotesView() { 
+            const area = document.getElementById("my-note-input"), 
+                  prev = document.getElementById("my-notes-preview"),
+                  btn = document.getElementById("toggle-view-btn"); 
+            if (area.style.display !== "none") { 
+                area.style.display = "none"; 
+                prev.style.display = "block"; 
+                btn.innerText = "EDIT";
+                renderMyPreview(); 
+            } else { 
+                area.style.display = "block"; 
+                prev.style.display = "none"; 
+                btn.innerText = "VIEW";
+            } 
+        }
+
+        function renderMyPreview() { 
+            document.getElementById("my-notes-preview").innerHTML = myNotes.map(n => 
+                `<div style="padding:10px; border-bottom:1px solid #eee;">• ${n}</div>`
+            ).join(''); 
+        }
+
+        function addContact() { 
+            const v = document.getElementById("search-input").value; 
+            if (v && v !== myCode) connection.invoke("CheckUserExists", v); 
+            document.getElementById("search-input").value = ""; 
+        }
+
+        function goHome() { 
+            document.getElementById("app-body").classList.remove("in-chat"); 
+            document.getElementById("back-btn").style.display = "none"; 
+            currentTarget = null; 
+        }
+
         renderDefaultID();
     </script>
 </body>
 </html>
-
-
