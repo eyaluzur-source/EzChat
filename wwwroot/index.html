@@ -247,12 +247,30 @@
         });
 
         connection.on("ReceiveGroupMessage", (members, sender, msg) => {
-            const gid = "GRP_" + members.sort().join("");
-            if (!chatsData[gid]) { chatsData[gid] = { messages: [], members: members, isGroup: true }; createContactUI(gid, "GRP"); }
-            chatsData[gid].messages.push({ sender, text: msg });
-            if (currentTarget === gid) renderMessage(sender, msg);
-            else document.getElementById("card-" + gid).style.borderColor = "orange";
-        });
+    // יצירת מזהה ייחודי לקבוצה על פי רשימת המשתתפים
+    const gid = "GRP_" + members.sort().join("");
+    
+    // אם הקבוצה לא קיימת אצל המקבל - ניצור אותה עם רשימת המשתתפים שהגיעה מהשרת
+    if (!chatsData[gid]) { 
+        chatsData[gid] = { 
+            messages: [], 
+            members: members, // כאן אנחנו שומרים את רשימת החברים שהשרת שלח
+            isGroup: true 
+        }; 
+        createContactUI(gid, "GRP"); 
+    }
+    
+    // הוספת ההודעה ורנדור
+    chatsData[gid].messages.push({ sender, text: msg });
+    
+    if (currentTarget === gid) {
+        renderMessage(sender, msg);
+    } else {
+        // התראה ויזואלית שהגיעה הודעה בקבוצה
+        const card = document.getElementById("card-" + gid);
+        if (card) card.style.borderColor = "orange";
+    }
+});
 
         connection.on("ReceiveUserNotes", (code, notes) => {
             if (code === myCode) { myNotes = notes; renderMyPreview(); }
@@ -332,11 +350,23 @@
         }
 
         function handleSend() {
-            const input = document.getElementById("msg-input"); if (!input.value.trim()) return;
-            if (isGroup) connection.invoke("SendMessageToGroup", chatsData[currentTarget].members, input.value);
-            else { connection.invoke("SendMessageToUser", currentTarget, input.value); chatsData[currentTarget].messages.push({ sender: 'me', text: input.value }); renderMessage('me', input.value); }
-            input.value = "";
-        }
+    const input = document.getElementById("msg-input"); 
+    const val = input.value.trim();
+    if (!val) return;
+
+    if (isGroup) {
+        // שליחה לשרת
+        connection.invoke("SendMessageToGroup", chatsData[currentTarget].members, val);
+        // הוספה לעצמי (השרת לא שולח חזרה לשולח ב-GroupMessage בדרך כלל)
+        chatsData[currentTarget].messages.push({ sender: myCode, text: val });
+        renderMessage(myCode, val);
+    } else {
+        connection.invoke("SendMessageToUser", currentTarget, val);
+        chatsData[currentTarget].messages.push({ sender: 'me', text: val });
+        renderMessage('me', val);
+    }
+    input.value = "";
+}
 
         function renderNotes(notes) { document.getElementById("notes-content").innerHTML = notes.map(n => `<div style="padding:10px; border-bottom:1px dotted #ccc;">• ${n}</div>`).join("") || "No notes."; }
         function updateMyNote() { const v = document.getElementById("my-note-input").value; if (v) { connection.invoke("UpdateMyNotes", v); document.getElementById("my-note-input").value = ""; } }
@@ -348,3 +378,4 @@
     </script>
 </body>
 </html>
+
