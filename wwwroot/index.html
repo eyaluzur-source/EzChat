@@ -246,29 +246,35 @@
             else document.getElementById("card-" + sender).style.borderColor = "orange";
         });
 
-        connection.on("ReceiveGroupMessage", (members, sender, msg) => {
-    // יצירת מזהה ייחודי לקבוצה על פי רשימת המשתתפים
+connection.on("ReceiveGroupMessage", (members, sender, msg) => {
+    // 1. יצירת ה-ID הייחודי
     const gid = "GRP_" + members.sort().join("");
     
-    // אם הקבוצה לא קיימת אצל המקבל - ניצור אותה עם רשימת המשתתפים שהגיעה מהשרת
-    if (!chatsData[gid]) { 
-        chatsData[gid] = { 
-            messages: [], 
-            members: members, // כאן אנחנו שומרים את רשימת החברים שהשרת שלח
-            isGroup: true 
-        }; 
-        createContactUI(gid, "GRP"); 
+    // 2. עדכון הנתונים בזיכרון - חייב לקרות אצל כולם!
+    if (!chatsData[gid]) {
+        chatsData[gid] = {
+            messages: [],
+            members: members,
+            isGroup: true
+        };
     }
     
-    // הוספת ההודעה ורנדור
+    // 3. הזרקה ויזואלית לרשימת החברים (זה מה שהיה חסר)
+    // אם הכרטיס לא קיים אצל המקבל, הפונקציה הזו תיצור אותו עכשיו
+    createContactUI(gid, "GRP");
+
+    // 4. הוספת ההודעה
     chatsData[gid].messages.push({ sender, text: msg });
-    
+
+    // 5. התראה למשתמש
     if (currentTarget === gid) {
         renderMessage(sender, msg);
     } else {
-        // התראה ויזואלית שהגיעה הודעה בקבוצה
         const card = document.getElementById("card-" + gid);
-        if (card) card.style.borderColor = "orange";
+        if (card) {
+            card.style.borderColor = "orange";
+            card.style.fontWeight = "bold"; // בולטות נוספת
+        }
     }
 });
 
@@ -378,4 +384,5 @@
     </script>
 </body>
 </html>
+
 
